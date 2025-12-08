@@ -2,11 +2,27 @@
 let courseList = []; 
 let myChart = null; 
 
-// CONFIG: Grading Standards (The Global Engine)
+// CONFIG: Grading Standards (Verified Global & Nigerian Metrics)
 const GRADING_SYSTEMS = {
-    'ng': { type: '5.0', A: 70, B: 60, C: 50, D: 45, max: 5 }, // Nigeria/UK
-    'us': { type: '4.0', A: 90, B: 80, C: 70, D: 60, max: 4 }, // USA
-    'in': { type: '10.0', A: 80, B: 70, C: 60, D: 50, max: 10 } // India (Simplified)
+    // 1. NUC Standard (Most Nigerian Unis & Colleges of Ed)
+    // Scale: 5.0 | A starts at 70
+    'ng': { type: '5.0_ng', max: 5 }, 
+    
+    // 2. University of Ibadan (7.0 Scale) - Verified
+    // Scale: 7.0 | A (70+) = 7pts, A- (65-69) = 6pts, etc.
+    'ui': { type: '7.0_ui', max: 7 },
+
+    // 3. Nigerian Polytechnic (NBTE Standard 4.0) - Verified
+    // Scale: 4.0 | A (75+) = 4.0, AB (70-74) = 3.5, etc.
+    'poly': { type: '4.0_poly', max: 4 },
+
+    // 4. USA Standard
+    // Scale: 4.0 | A starts at 90
+    'us': { type: '4.0_us', max: 4 },
+    
+    // 5. India (UGC Standard) - Verified
+    // Scale: 10.0 | O (80+) = 10pts
+    'in': { type: '10.0', max: 10 }
 };
 
 const button = document.getElementById('addBtn');
@@ -178,28 +194,63 @@ function calculateGradeAndPoints(score, system) {
     let points = 0;
     let grade = 'F';
 
-    if (system.type === '5.0') { // Nigeria/UK
-        if (score >= system.A) { points = 5; grade = 'A'; }
-        else if (score >= system.B) { points = 4; grade = 'B'; }
-        else if (score >= system.C) { points = 3; grade = 'C'; }
-        else if (score >= system.D) { points = 2; grade = 'D'; }
+    // --- NIGERIA UNIVERSITY & COLLEGE OF ED (5.0) ---
+    // Source: NUC Standards
+    if (system.type === '5.0_ng') {
+        if (score >= 70) { points = 5; grade = 'A'; }
+        else if (score >= 60) { points = 4; grade = 'B'; }
+        else if (score >= 50) { points = 3; grade = 'C'; }
+        else if (score >= 45) { points = 2; grade = 'D'; }
+        else if (score >= 40) { points = 1; grade = 'E'; } // Some schools use E
         else { points = 0; grade = 'F'; }
     } 
-    else if (system.type === '4.0') { // USA
-        if (score >= system.A) { points = 4.0; grade = 'A'; }
-        else if (score >= system.B) { points = 3.0; grade = 'B'; }
-        else if (score >= system.C) { points = 2.0; grade = 'C'; }
-        else if (score >= system.D) { points = 1.0; grade = 'D'; }
+    // --- UNIVERSITY OF IBADAN (7.0) ---
+    // Source: UI Official Grading
+    else if (system.type === '7.0_ui') {
+        if (score >= 70) { points = 7; grade = 'A'; }
+        else if (score >= 65) { points = 6; grade = 'A-'; }
+        else if (score >= 60) { points = 5; grade = 'B+'; }
+        else if (score >= 55) { points = 4; grade = 'B'; }
+        else if (score >= 50) { points = 3; grade = 'B-'; }
+        else if (score >= 45) { points = 2; grade = 'C+'; }
+        else if (score >= 40) { points = 1; grade = 'C'; }
         else { points = 0; grade = 'F'; }
     }
-    else if (system.type === '10.0') { // India
-        // Simplified Logic for demo
-        if (score >= system.A) { points = 10; grade = 'O'; }
-        else if (score >= system.B) { points = 9; grade = 'A+'; }
-        else if (score >= system.C) { points = 8; grade = 'A'; }
-        else if (score >= system.D) { points = 7; grade = 'B+'; }
+    // --- NIGERIAN POLYTECHNIC (4.0) ---
+    // Source: NBTE / Interlink / MonoEd
+    // Distinct from US 4.0 because A starts at 75/80, not 90
+    else if (system.type === '4.0_poly') {
+        if (score >= 75) { points = 4.00; grade = 'A'; } 
+        else if (score >= 70) { points = 3.50; grade = 'AB'; }
+        else if (score >= 65) { points = 3.25; grade = 'B'; }
+        else if (score >= 60) { points = 3.00; grade = 'BC'; }
+        else if (score >= 55) { points = 2.75; grade = 'C'; }
+        else if (score >= 50) { points = 2.50; grade = 'CD'; }
+        else if (score >= 45) { points = 2.25; grade = 'D'; }
+        else if (score >= 40) { points = 2.00; grade = 'E'; }
+        else { points = 0.00; grade = 'F'; }
+    }
+    // --- USA (4.0) ---
+    else if (system.type === '4.0_us') {
+        if (score >= 90) { points = 4.0; grade = 'A'; }
+        else if (score >= 80) { points = 3.0; grade = 'B'; }
+        else if (score >= 70) { points = 2.0; grade = 'C'; }
+        else if (score >= 60) { points = 1.0; grade = 'D'; }
         else { points = 0; grade = 'F'; }
     }
+    // --- INDIA (10.0) ---
+    // Source: UGC Guidelines
+    else if (system.type === '10.0') {
+        if (score >= 80) { points = 10; grade = 'O'; } // Outstanding
+        else if (score >= 70) { points = 9; grade = 'A+'; }
+        else if (score >= 60) { points = 8; grade = 'A'; }
+        else if (score >= 55) { points = 7; grade = 'B+'; }
+        else if (score >= 50) { points = 6; grade = 'B'; }
+        else if (score >= 45) { points = 5; grade = 'C'; }
+        else if (score >= 40) { points = 4; grade = 'P'; } // Pass
+        else { points = 0; grade = 'F'; }
+    }
+    
     return { points, grade };
 }
 

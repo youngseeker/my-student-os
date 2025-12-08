@@ -1,0 +1,367 @@
+/* 1. GLOBAL VARIABLES */
+:root {
+    --primary-color: #6c5ce7;
+    --secondary-color: #a29bfe;
+    --bg-color: #0f0c29;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
+    --success-color: #00b894;
+    --warning-color: #fdcb6e;
+    --danger-color: #ff7675;
+}
+
+/* 2. RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    
+    /* THE FIXES: */
+    line-height: 1.6; /* Adds breathing room between text lines */
+    letter-spacing: 0.5px; /* Adds tiny space between letters for clarity */
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+h2, h3 { margin-bottom: 25px; font-weight: 600; line-height: 1.4;}
+
+/* 3. GLASSMORPHISM CARDS - With Hover Motion */
+#grade-calculator, .table-container, #result-area, #profile-card, .chart-container, #target-calculator {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Subtle Lift Effect on Hover */
+#grade-calculator:hover, #target-calculator:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 4. LAYOUT UTILITIES */
+.settings-row {
+    margin-top: 15px; /* More space from the name input */
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.system-select-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.input-row {
+    display: flex;
+    gap: 20px; /* Increased from 15px */
+    width: 100%;
+    margin-bottom: 25px; /* Increased bottom space */
+    flex-wrap: wrap;
+}
+
+/* 5. INPUTS & BUTTONS */
+input, select {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--secondary-color);
+    color: white;
+    
+    /* THE FIXES: */
+    padding: 15px 20px; /* Taller and wider internal spacing */
+    margin-bottom: 5px; /* Tiny buffer just in case they wrap */
+    
+    border-radius: 12px; /* Softer corners */
+    font-size: 1rem;
+    flex: 1;
+    min-width: 120px;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.6);
+}
+
+select option {
+    background-color: #0f0c29;
+    color: white;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+}
+
+.action-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.action-btn { background: var(--secondary-color); box-shadow: none; }
+.delete-mode { background: var(--danger-color); opacity: 0.9; box-shadow: none; }
+
+/* 6. TABLE */
+.table-container {
+    overflow-x: auto; 
+    padding: 0; 
+    background: transparent; 
+    border: none;
+    box-shadow: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; 
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+th {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* 7. RESULT AREAS */
+#result-area {
+    text-align: center;
+    border: 2px solid var(--success-color);
+}
+
+#gpaScore {
+    color: var(--success-color);
+    font-size: 2.2rem;
+    font-weight: 800;
+}
+
+.status-green { color: var(--success-color) !important; border-color: var(--success-color) !important; }
+.status-orange { color: var(--warning-color) !important; border-color: var(--warning-color) !important; }
+.status-red { color: var(--danger-color) !important; border-color: var(--danger-color) !important; }
+
+/* Animations */
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* 8. PROFILE CARD */
+#profile-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-image-container {
+    width: 90px;
+    height: 90px;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+}
+
+#profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+    transition: transform 0.3s;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+}
+
+#profile-img:hover { transform: scale(1.05); }
+#imageInput { display: none; }
+
+.profile-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.transparent-input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 5px;
+    width: 100%;
+    border-bottom: 2px solid transparent;
+    transition: border-bottom 0.3s;
+}
+.transparent-input.small {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    font-weight: 400;
+}
+.transparent-input:focus {
+    background: transparent;
+    outline: none;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* 9. SUMMARIES & CHART */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.summary-card:hover { 
+    transform: translateY(-5px) scale(1.02); 
+    background: rgba(255,255,255,0.08); 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.summary-sem { font-size: 0.8rem; color: var(--secondary-color); text-transform: uppercase; letter-spacing: 1px; }
+.summary-gpa { font-size: 1.6rem; font-weight: bold; margin-top: 5px; }
+
+.chart-container { height: 320px; display: flex; justify-content: center; }
+
+/* 10. TARGET CALCULATOR */
+#target-calculator {
+    background: rgba(253, 203, 110, 0.05); 
+    border: 1px solid var(--warning-color);
+}
+.target-subtitle { font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 15px; }
+#targetCurrentCGPA { color: white; font-weight: bold; }
+.target-inputs { display: flex; gap: 10px; flex-wrap: wrap; }
+.target-btn { background: var(--warning-color); color: #0f0c29; box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3); }
+#targetResult { margin-top: 15px; font-weight: bold; font-size: 1.1rem; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+.delete-btn {
+    background: transparent;
+    color: var(--danger-color);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: none;
+}
+.delete-btn:hover { background-color: var(--danger-color); color: white; }
+
+.footer { text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; padding-bottom: 20px; margin-top: 20px;}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    #profile-card { flex-direction: column; text-align: center; }
+    .settings-row { flex-direction: column; }
+    .system-select-container { width: 100%; }
+    #grade-calculator .input-row { flex-direction: column; gap: 10px; }
+    input, select, button { width: 100%; }
+    h1 { font-size: 1.8rem; }
+    .chart-container { height: 250px; }
+}
+
+/* --- PRINT MODE --- */
+@media print {
+    #grade-calculator, .delete-btn, #addBtn, #imageInput, .filter-area, 
+    #target-calculator, .action-bar, input[type="file"], .footer {
+        display: none !important;
+    }
+    body, #profile-card, table, .chart-container, #result-area, .summary-card {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+    body { padding: 0; display: block; }
+    .chart-container { height: 300px; border: none; }
+    canvas { max-width: 100% !important; }
+    h1, h2, h3, th, td, span { color: black !important; text-shadow: none !important; }
+}
+
+/* --- COFFEE BUTTON STYLING --- */
+.coffee-btn {
+    background: #FFDD00 !important; /* The Official BMC Yellow */
+    color: #000000 !important; /* Black text for contrast */
+    font-weight: 800; /* Extra bold */
+    box-shadow: 0 4px 15px rgba(255, 221, 0, 0.3); /* Yellow Glow */
+    border: 1px solid #e6c200;
+}
+
+.coffee-btn:hover {
+    background: #ffe64a !important;
+    transform: translateY(-3px) scale(1.05); /* Lifts higher than other buttons */
+    box-shadow: 0 8px 25px rgba(255, 221, 0, 0.5);
+}
+
+/* Optional: A subtle wiggle animation to draw the eye every 5 seconds */
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+
+.coffee-btn {
+    animation: wiggle 2s ease-in-out infinite;
+    animation-delay: 5s; /* Waits 5s, then wiggles */
+}

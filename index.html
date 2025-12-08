@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Student OS | Adeyemi Adeniji</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c5ce7">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="The ultimate GPA Calculator and Student Operating System for Global Universities. Built by Adeyemi Adeniji.">
+    <meta name="author" content="Adeyemi Adeniji">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="My Student OS | Adeyemi Adeniji">
+    <meta property="og:description" content="Calculate GPA, Track Progress, and Manage Academic Targets. Supports Nigeria (5.0), US (4.0), and Indian grading systems.">
+    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
+</head>
+<body> 
+ <div id="profile-card">
+        <div class="profile-image-container">
+            <img id="profile-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        
+        <div class="profile-details">
+            <input type="text" id="studentName" placeholder="Enter Name" class="transparent-input">
+            <input type="text" id="studentSchool" placeholder="University / Program" class="transparent-input small">
+            
+            <div class="settings-row">
+                <select id="programDuration" onchange="updateSemesterOptions()">
+                    <option value="2">Diploma (2 Years)</option>
+                    <option value="4" selected>Degree (4 Years)</option>
+                    <option value="5">Engineering/Law (5 Years)</option>
+                    <option value="6">Medicine (6 Years)</option>
+                    <option value="1.5">Masters (3 Semesters)</option>
+                </select>
+
+                <div class="system-select-container">
+                    <label>Terms:</label>
+                    <select id="termSystem" onchange="updateSemesterOptions()">
+                        <option value="2">Semester (2)</option>
+                        <option value="3">Trimester (3)</option>
+                        <option value="4">Quarter (4)</option>
+                    </select>
+                </div>
+
+                <div class="system-select-container">
+                    <label>Scale:</label>
+                    <select id="gradingStandard" onchange="recalculateAll()">
+                        <option value="ng">🇳🇬/🇬🇧 Nigeria/UK (5.0)</option>
+                        <option value="us">🇺🇸 USA (4.0)</option>
+                        <option value="in">🇮🇳 India (10.0)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h1>My Student OS</h1>
+
+  <div class="action-bar">
+        <button onclick="window.print()" class="action-btn">🖨️ Save PDF</button>
+        <button onclick="clearAllData()" class="action-btn delete-mode">🗑️ Reset</button>
+        
+        <a href="https://www.buymeacoffee.com/adeyemiadeniji" target="_blank" style="text-decoration: none;">
+            <button class="action-btn coffee-btn">☕ Buy me a Coffee</button>
+        </a>
+    </div>
+
+    <div id="grade-calculator">
+        <h2>Add a Course</h2>
+        <div class="input-row">
+            <select id="semesterSelect"></select>
+            <input type="text" id="courseCode" placeholder="Course Code (e.g. CIT215)">
+        </div>
+
+        <div class="input-row">
+            <input type="number" id="courseScore" placeholder="Score (0-100)">
+            <input type="number" id="courseUnit" placeholder="Units">
+            <button id="addBtn">Add Course</button>
+        </div>
+    </div>
+
+    <div class="filter-area">
+        <label>Filter View:</label>
+        <select id="filterSelect" onchange="filterTable()">
+            <option value="all">Show All Semesters</option>
+        </select>
+    </div>
+
+    <h3>Course Registry</h3>
+    <div class="table-container">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Sem</th>
+                    <th>Code</th>
+                    <th>Unit</th>
+                    <th>Score</th>
+                    <th>Grd</th>
+                    <th>Pts</th>
+                    <th>QP</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="courseTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="result-area">
+        <h3>Cumulative GPA: <span id="gpaScore">0.00</span> / <span id="maxScaleDisplay">5.00</span></h3>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="gpaChart"></canvas>
+    </div>
+
+    <div id="semester-summaries" class="summary-grid"></div>
+
+    <div id="target-calculator">
+        <h3>🎯 Target GPA Manager</h3>
+        <p class="target-subtitle">
+            Current CGPA: <span id="targetCurrentCGPA">0.00</span>
+        </p>
+        
+        <div class="target-inputs">
+            <input type="number" id="targetGPA" placeholder="Goal CGPA (e.g. 4.5)">
+            <input type="number" id="nextUnits" placeholder="Units Next Sem (e.g. 24)">
+            <button onclick="calculateTarget()" class="target-btn">Check Required GPA</button>
+        </div>
+        <p id="targetResult"></p>
+    </div>
+    
+    <div class="footer">
+        <p>© 2025 Adeyemi Adeniji. All Rights Reserved.</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

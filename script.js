@@ -8,20 +8,18 @@ const GRADING_SYSTEMS = {
     // Scale: 5.0 | A starts at 70
     'ng': { type: '5.0_ng', max: 5 }, 
     
-    // 2. University of Ibadan (7.0 Scale) - Verified
-    // Scale: 7.0 | A (70+) = 7pts, A- (65-69) = 6pts, etc.
-    'ui': { type: '7.0_ui', max: 7 },
+    // 2. Special 7.0 Scale (Used for Postgraduates or Older Systems)
+    // Scale: 7.0 | A (70+) = 7pts
+    'ui': { type: '7.0_special', max: 7 }, // Renamed type for clarity
 
-    // 3. Nigerian Polytechnic (NBTE Standard 4.0) - Verified
-    // Scale: 4.0 | A (75+) = 4.0, AB (70-74) = 3.5, etc.
+    // 3. Nigerian Polytechnic (NBTE Standard 4.0)
+    // Scale: 4.0 | A starts at 75
     'poly': { type: '4.0_poly', max: 4 },
 
     // 4. USA Standard
-    // Scale: 4.0 | A starts at 90
     'us': { type: '4.0_us', max: 4 },
     
-    // 5. India (UGC Standard) - Verified
-    // Scale: 10.0 | O (80+) = 10pts
+    // 5. India (UGC Standard)
     'in': { type: '10.0', max: 10 }
 };
 
@@ -194,19 +192,18 @@ function calculateGradeAndPoints(score, system) {
     let points = 0;
     let grade = 'F';
 
-    // --- NIGERIA UNIVERSITY & COLLEGE OF ED (5.0) ---
-    // Source: NUC Standards
+    // --- STANDARD 5.0 SCALE ---
     if (system.type === '5.0_ng') {
         if (score >= 70) { points = 5; grade = 'A'; }
         else if (score >= 60) { points = 4; grade = 'B'; }
         else if (score >= 50) { points = 3; grade = 'C'; }
         else if (score >= 45) { points = 2; grade = 'D'; }
-        else if (score >= 40) { points = 1; grade = 'E'; } // Some schools use E
+        else if (score >= 40) { points = 1; grade = 'E'; }
         else { points = 0; grade = 'F'; }
     } 
-    // --- UNIVERSITY OF IBADAN (7.0) ---
-    // Source: UI Official Grading
-    else if (system.type === '7.0_ui') {
+    // --- SPECIAL 7.0 SCALE (Postgraduate / Old) ---
+    // A (70+) = 7pts, A- (65-69) = 6pts, etc.
+    else if (system.type === '7.0_special') {
         if (score >= 70) { points = 7; grade = 'A'; }
         else if (score >= 65) { points = 6; grade = 'A-'; }
         else if (score >= 60) { points = 5; grade = 'B+'; }
@@ -217,8 +214,6 @@ function calculateGradeAndPoints(score, system) {
         else { points = 0; grade = 'F'; }
     }
     // --- NIGERIAN POLYTECHNIC (4.0) ---
-    // Source: NBTE / Interlink / MonoEd
-    // Distinct from US 4.0 because A starts at 75/80, not 90
     else if (system.type === '4.0_poly') {
         if (score >= 75) { points = 4.00; grade = 'A'; } 
         else if (score >= 70) { points = 3.50; grade = 'AB'; }
@@ -239,15 +234,14 @@ function calculateGradeAndPoints(score, system) {
         else { points = 0; grade = 'F'; }
     }
     // --- INDIA (10.0) ---
-    // Source: UGC Guidelines
     else if (system.type === '10.0') {
-        if (score >= 80) { points = 10; grade = 'O'; } // Outstanding
+        if (score >= 80) { points = 10; grade = 'O'; }
         else if (score >= 70) { points = 9; grade = 'A+'; }
         else if (score >= 60) { points = 8; grade = 'A'; }
         else if (score >= 55) { points = 7; grade = 'B+'; }
         else if (score >= 50) { points = 6; grade = 'B'; }
         else if (score >= 45) { points = 5; grade = 'C'; }
-        else if (score >= 40) { points = 4; grade = 'P'; } // Pass
+        else if (score >= 40) { points = 4; grade = 'P'; }
         else { points = 0; grade = 'F'; }
     }
     

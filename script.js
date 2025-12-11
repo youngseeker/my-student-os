@@ -1,3 +1,11 @@
+// --- PWA SERVICE WORKER REGISTRATION ---
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("Student OS Service Worker Registered!"))
+            .catch((err) => console.log("Service Worker Failed:", err));
+    });
+}
 // --- GLOBAL VARIABLES ---
 let courseList = []; 
 let myChart = null; 
@@ -183,6 +191,10 @@ function renderTable(dataToRender = courseList) {
             </tr>`;
         if (myChart) myChart.destroy();
         document.getElementById('gpaScore').innerText = "0.00";
+        // --- ADD THESE 2 LINES HERE TOO ---
+        document.getElementById('totalCoursesDisplay').innerText = "0";
+        document.getElementById('totalUnitsDisplay').innerText = "0";
+        // ----------------------------------
         const resultArea = document.getElementById('result-area');
         const gpaText = document.getElementById('gpaScore');
         resultArea.className = ''; 
@@ -221,6 +233,11 @@ function renderTable(dataToRender = courseList) {
     document.getElementById('gpaScore').innerText = gpa.toFixed(2);
     document.getElementById('targetCurrentCGPA').innerText = gpa.toFixed(2);
     
+    // --- PASTE THESE 2 NEW LINES HERE ---
+    document.getElementById('totalCoursesDisplay').innerText = dataToRender.length;
+    document.getElementById('totalUnitsDisplay').innerText = totalUnits;
+    // ------------------------------------
+
     updateGPAColor(gpa, system.max);
     renderChart(system); 
     

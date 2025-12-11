@@ -67,6 +67,7 @@
             <option value="ui">7.0 Scale (Special/PG)</option>
         </optgroup>
         <optgroup label="🌍 Global">
+            <option value="uk">🇬🇧 UK (Percentage/Class)</option>
             <option value="us">🇺🇸 USA (4.0)</option>
             <option value="in">🇮🇳 India (10.0)</option>
         </optgroup>
@@ -86,8 +87,8 @@
         </div>
 
         <div class="input-row">
-            <input type="number" id="courseScore" placeholder="Score (0-100)">
-            <input type="number" id="courseUnit" placeholder="Units">
+            <input type="text" id="courseScore" placeholder="Score (e.g. 70) or Grade (e.g. A)" inputmode="text">
+            <input type="number" id="courseUnit" min="0" step="1" placeholder="Units">
             <button id="addBtn">Add Course</button>
         </div>
     </div>

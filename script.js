@@ -2,24 +2,13 @@
 let courseList = []; 
 let myChart = null; 
 
-// CONFIG: Grading Standards (Verified Global & Nigerian Metrics)
+// CONFIG: Grading Standards
 const GRADING_SYSTEMS = {
-    // 1. NUC Standard (Most Nigerian Unis & Colleges of Ed)
-    // Scale: 5.0 | A starts at 70
     'ng': { type: '5.0_ng', max: 5 }, 
-    
-    // 2. Special 7.0 Scale (Used for Postgraduates or Older Systems)
-    // Scale: 7.0 | A (70+) = 7pts
-    'ui': { type: '7.0_special', max: 7 }, // Renamed type for clarity
-
-    // 3. Nigerian Polytechnic (NBTE Standard 4.0)
-    // Scale: 4.0 | A starts at 75
+    'ui': { type: '7.0_special', max: 7 },
     'poly': { type: '4.0_poly', max: 4 },
-
-    // 4. USA Standard
+    'uk': { type: '4.0_uk', max: 4.0 },
     'us': { type: '4.0_us', max: 4 },
-    
-    // 5. India (UGC Standard)
     'in': { type: '10.0', max: 10 }
 };
 
@@ -28,14 +17,20 @@ button.addEventListener('click', addCourseToTable);
 
 // --- 1. INITIALIZATION ---
 window.onload = function() {
+    // 1. Load Grades
     const savedData = localStorage.getItem("myGrades");
     if (savedData) {
         courseList = JSON.parse(savedData);
     }
     
-    loadProfile();
+    // 2. Load Profile & Settings (Just sets the values, doesn't calculate)
+    loadProfile(); 
+    
+    // 3. Update Dropdowns based on loaded settings
     updateSemesterOptions();
-    renderTable(); // This now auto-calculates based on the default system
+    
+    // 4. NOW it is safe to calculate and render everything
+    recalculateAll(); 
 };
 
 // --- 2. DYNAMIC DROPDOWNS ---
@@ -70,35 +65,70 @@ function createOption(selectElement, value, text) {
 
 // --- 3. RECALCULATE ON SYSTEM CHANGE ---
 function recalculateAll() {
-    // When the user changes the grading system (e.g., Nigeria to US)
-    // We re-render the table. The renderTable function will pull the NEW settings
-    // and re-calculate points for every course in the list.
+    // 1. Re-render the data
     renderTable();
     renderSemesterSummaries();
+
+    // 2. Update Input Placeholder based on System
+    const systemKey = document.getElementById('gradingStandard').value;
+    const inputField = document.getElementById('courseScore');
+
+    switch(systemKey) {
+        case 'ng': inputField.placeholder = "Score (0-100) or Grade (A, B, C...)"; break;
+        case 'poly': inputField.placeholder = "Score (0-100) or Grade (A, AB, B...)"; break;
+        case 'ui': inputField.placeholder = "Score (0-100) or Grade (A, A-, B+...)"; break;
+        case 'us': inputField.placeholder = "Score (0-100) or Grade (A, B, C...)"; break;
+        case 'in': inputField.placeholder = "Score (0-100) or Grade (O, A+, A...)"; break;
+        case 'uk': inputField.placeholder = "Score (0-100) or Grade (1st, 2:1...)"; break;
+        default: inputField.placeholder = "Score (0-100) or Grade";
+    }
 }
 
 // --- 4. ADD COURSE ---
 function addCourseToTable() {
     const semester = document.getElementById('semesterSelect').value;
     const code = document.getElementById('courseCode').value.toUpperCase();
-    let rawScore = document.getElementById('courseScore').value;
-    const score = Math.round(parseFloat(rawScore)); 
     const unit = document.getElementById('courseUnit').value;
-// FINAL FIX: Cap the score at 100 to prevent typos like "150"
-    if (score > 100) score = 100;
-    if (score < 0) score = 0;
-    if(code === '' || rawScore === '' || unit === '') {
+    let rawScoreInput = document.getElementById('courseScore').value.trim();
+
+    // DUPLICATE CHECK
+    const exists = courseList.some(c => c.code === code && c.semester === semester);
+    if (exists) {
+        alert(`⚠️ Duplicate Warning:\n\nYou have already added ${code} to this semester.`);
+        return; 
+    }
+
+    if(code === '' || rawScoreInput === '' || unit === '') {
         alert("Please fill in all details!");
         return;
     }
 
-    // NOTE: We do NOT calculate points here anymore. 
-    // We save the raw SCORE. Points are calculated dynamically during render.
+    let finalScore;
+    
+    // CHECK: Is the input a Number or a Letter?
+    if (!isNaN(rawScoreInput)) {
+        finalScore = Math.round(parseFloat(rawScoreInput));
+    } else {
+        const standardKey = document.getElementById('gradingStandard').value;
+        const system = GRADING_SYSTEMS[standardKey];
+        finalScore = getScoreFromGrade(rawScoreInput, system.type);
+        
+        if (finalScore === -1) {
+            alert(`The grade "${rawScoreInput}" is not valid for the selected grading system.`);
+            return;
+        }
+    }
+
+    // Safety Checks
+    if (finalScore > 100) finalScore = 100;
+    if (finalScore < 0) finalScore = 0;
+    if (parseInt(unit) <= 0) { alert("Units must be positive"); return; }
+
     const course = {
         id: Date.now(),
         semester: semester,
         code: code,
-        score: score,
+        score: finalScore, 
         unit: parseInt(unit)
     };
 
@@ -107,7 +137,6 @@ function addCourseToTable() {
     renderTable();
     renderSemesterSummaries(); 
     
-    // Clear inputs
     document.getElementById('courseCode').value = '';
     document.getElementById('courseScore').value = '';
     document.getElementById('courseUnit').value = '';
@@ -138,23 +167,37 @@ function renderTable(dataToRender = courseList) {
     let totalUnits = 0;
     let totalQP = 0;
 
-    // Get Current Grading Standard
-    const standardKey = document.getElementById('gradingStandard').value; // 'ng', 'us', or 'in'
+    const standardKey = document.getElementById('gradingStandard').value; 
     const system = GRADING_SYSTEMS[standardKey];
 
-    // Update Max Scale UI
     document.getElementById('maxScaleDisplay').innerText = system.max.toFixed(2);
+
+    // EMPTY STATE CHECK
+    if (dataToRender.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center; padding: 2rem; color: #b2bec3;">
+                    <h3>📭 No courses added yet</h3>
+                    <p>Select a semester and add your first course above!</p>
+                </td>
+            </tr>`;
+        if (myChart) myChart.destroy();
+        document.getElementById('gpaScore').innerText = "0.00";
+        const resultArea = document.getElementById('result-area');
+        const gpaText = document.getElementById('gpaScore');
+        resultArea.className = ''; 
+        gpaText.className = '';
+        return; 
+    }
 
     dataToRender.sort((a, b) => parseFloat(a.semester) - parseFloat(b.semester));
 
     dataToRender.forEach(course => {
-        // Calculate Points/Grade dynamically based on current system
         const result = calculateGradeAndPoints(course.score, system);
-        
-        // Calculate QP for this row
+        // This was the missing function causing the crash!
+        const gradeColor = getColorForScore(course.score, system.type);
         const rowQP = course.unit * result.points;
 
-        // Add to Totals
         totalUnits += course.unit;
         totalQP += rowQP;
 
@@ -164,9 +207,9 @@ function renderTable(dataToRender = courseList) {
                 <td>${course.code}</td>
                 <td>${course.unit}</td>
                 <td>${course.score}</td>
-                <td style="color: ${getGradeColor(result.grade)}">${result.grade}</td>
+                <td style="color: ${gradeColor}; font-weight: 800;">${result.grade}</td>
                 <td>${result.points}</td>
-                <td>${rowQP}</td>
+                <td>${rowQP.toFixed(2)}</td>
                 <td><button class="delete-btn" onclick="deleteCourse(${course.id})">X</button></td>
             </tr>`;
         tableBody.innerHTML += row;
@@ -179,9 +222,8 @@ function renderTable(dataToRender = courseList) {
     document.getElementById('targetCurrentCGPA').innerText = gpa.toFixed(2);
     
     updateGPAColor(gpa, system.max);
-    renderChart(system); // Pass system to chart
+    renderChart(system); 
     
-    // Confetti if GPA is Top Tier (Top 10% of scale)
     if(gpa >= (system.max * 0.9)) {
         triggerConfetti();
     }
@@ -192,7 +234,6 @@ function calculateGradeAndPoints(score, system) {
     let points = 0;
     let grade = 'F';
 
-    // --- STANDARD 5.0 SCALE ---
     if (system.type === '5.0_ng') {
         if (score >= 70) { points = 5; grade = 'A'; }
         else if (score >= 60) { points = 4; grade = 'B'; }
@@ -201,8 +242,6 @@ function calculateGradeAndPoints(score, system) {
         else if (score >= 40) { points = 1; grade = 'E'; }
         else { points = 0; grade = 'F'; }
     } 
-    // --- SPECIAL 7.0 SCALE (Postgraduate / Old) ---
-    // A (70+) = 7pts, A- (65-69) = 6pts, etc.
     else if (system.type === '7.0_special') {
         if (score >= 70) { points = 7; grade = 'A'; }
         else if (score >= 65) { points = 6; grade = 'A-'; }
@@ -213,7 +252,6 @@ function calculateGradeAndPoints(score, system) {
         else if (score >= 40) { points = 1; grade = 'C'; }
         else { points = 0; grade = 'F'; }
     }
-    // --- NIGERIAN POLYTECHNIC (4.0) ---
     else if (system.type === '4.0_poly') {
         if (score >= 75) { points = 4.00; grade = 'A'; } 
         else if (score >= 70) { points = 3.50; grade = 'AB'; }
@@ -225,7 +263,13 @@ function calculateGradeAndPoints(score, system) {
         else if (score >= 40) { points = 2.00; grade = 'E'; }
         else { points = 0.00; grade = 'F'; }
     }
-    // --- USA (4.0) ---
+    else if (system.type === '4.0_uk') {
+        if (score >= 70) { points = 4.00; grade = '1st'; }
+        else if (score >= 60) { points = 3.33; grade = '2:1'; }
+        else if (score >= 50) { points = 2.67; grade = '2:2'; }
+        else if (score >= 40) { points = 2.00; grade = '3rd'; }
+        else { points = 0.00; grade = 'Fail'; }
+    }
     else if (system.type === '4.0_us') {
         if (score >= 90) { points = 4.0; grade = 'A'; }
         else if (score >= 80) { points = 3.0; grade = 'B'; }
@@ -233,7 +277,6 @@ function calculateGradeAndPoints(score, system) {
         else if (score >= 60) { points = 1.0; grade = 'D'; }
         else { points = 0; grade = 'F'; }
     }
-    // --- INDIA (10.0) ---
     else if (system.type === '10.0') {
         if (score >= 80) { points = 10; grade = 'O'; }
         else if (score >= 70) { points = 9; grade = 'A+'; }
@@ -248,7 +291,97 @@ function calculateGradeAndPoints(score, system) {
     return { points, grade };
 }
 
-// --- 7. VISUALIZATIONS ---
+// --- 7. HELPER: COLOR LOGIC (THIS WAS MISSING BEFORE) ---
+function getColorForScore(score, systemType) {
+    // Nigeria (5.0), Poly (4.0) & UI (7.0)
+    if (systemType === '5.0_ng' || systemType === '4.0_poly' || systemType === '7.0_special') {
+        if (score >= 60) return '#00b894'; // Green
+        if (score >= 40) return '#fdcb6e'; // Orange
+        return '#ff7675';                  // Red
+    }
+    // USA (4.0)
+    else if (systemType === '4.0_us') {
+        if (score >= 80) return '#00b894'; 
+        if (score >= 60) return '#fdcb6e'; 
+        return '#ff7675';                  
+    }
+    // UK (Percentage)
+    else if (systemType === '4.0_uk') {
+        if (score >= 60) return '#00b894'; // 1st & 2:1
+        if (score >= 40) return '#fdcb6e'; // 2:2 & 3rd
+        return '#ff7675';                  
+    }
+    // India (10.0)
+    else if (systemType === '10.0') {
+        if (score >= 60) return '#00b894'; 
+        if (score >= 40) return '#fdcb6e'; 
+        return '#ff7675';                  
+    }
+    return '#ffffff';
+}
+
+// --- 8. HELPER: LETTER TO SCORE ---
+function getScoreFromGrade(gradeInput, systemType) {
+    const grade = gradeInput.toUpperCase().trim();
+    
+    if (systemType === '5.0_ng') {
+        if (grade === 'A') return 70;
+        if (grade === 'B') return 60;
+        if (grade === 'C') return 50;
+        if (grade === 'D') return 45;
+        if (grade === 'E') return 40;
+        if (grade === 'F') return 0;
+    }
+    else if (systemType === '7.0_special') {
+        if (grade === 'A') return 70;
+        if (grade === 'A-') return 65;
+        if (grade === 'B+') return 60;
+        if (grade === 'B') return 55;
+        if (grade === 'B-') return 50;
+        if (grade === 'C+') return 45;
+        if (grade === 'C') return 40;
+        if (grade === 'F') return 0;
+    }
+    else if (systemType === '4.0_poly') {
+        if (grade === 'A') return 75;
+        if (grade === 'AB') return 70;
+        if (grade === 'B') return 65;
+        if (grade === 'BC') return 60;
+        if (grade === 'C') return 55;
+        if (grade === 'CD') return 50;
+        if (grade === 'D') return 45;
+        if (grade === 'E') return 40;
+        if (grade === 'F') return 0;
+    }
+    else if (systemType === '4.0_uk') {
+        if (grade === '1ST') return 75;
+        if (grade === '2:1') return 65;
+        if (grade === '2:2') return 55;
+        if (grade === '3RD') return 45;
+        if (grade === 'FAIL') return 0;
+    }
+    else if (systemType === '4.0_us') {
+        if (grade === 'A') return 90;
+        if (grade === 'B') return 80;
+        if (grade === 'C') return 70;
+        if (grade === 'D') return 60;
+        if (grade === 'F') return 0;
+    }
+    else if (systemType === '10.0') {
+        if (grade === 'O') return 80;
+        if (grade === 'A+') return 70;
+        if (grade === 'A') return 60;
+        if (grade === 'B+') return 55;
+        if (grade === 'B') return 50;
+        if (grade === 'C') return 45;
+        if (grade === 'P') return 40;
+        if (grade === 'F') return 0;
+    }
+    
+    return -1; 
+}
+
+// --- 9. VISUALIZATIONS ---
 function renderSemesterSummaries() {
     const container = document.getElementById('semester-summaries');
     container.innerHTML = ''; 
@@ -268,7 +401,6 @@ function renderSemesterSummaries() {
         const data = semesterGroups[sem];
         const semGPA = (data.qp / data.units).toFixed(2);
         
-        // Dynamic Coloring
         let statusClass = 'status-red';
         if(semGPA >= (system.max * 0.7)) statusClass = 'status-green';
         else if(semGPA >= (system.max * 0.5)) statusClass = 'status-orange';
@@ -284,7 +416,6 @@ function renderSemesterSummaries() {
 function renderChart(system) {
     const ctx = document.getElementById('gpaChart').getContext('2d');
     
-    // FINAL FIX: If no courses, destroy chart and exit (cleaner look)
     if (courseList.length === 0) {
         if (myChart) myChart.destroy();
         return;
@@ -318,7 +449,7 @@ function renderChart(system) {
                 backgroundColor: 'rgba(0, 184, 148, 0.2)', 
                 borderWidth: 3,
                 tension: 0.4, 
-                fill: true, // Added fill for better look
+                fill: true,
                 pointBackgroundColor: '#ffffff',
                 pointRadius: 5
             }]
@@ -335,7 +466,7 @@ function renderChart(system) {
     });
 }
 
-// --- 8. HELPERS ---
+// --- 10. HELPERS ---
 function calculateTarget() {
     const standardKey = document.getElementById('gradingStandard').value;
     const system = GRADING_SYSTEMS[standardKey];
@@ -373,12 +504,6 @@ function calculateTarget() {
 
 function saveData() { localStorage.setItem("myGrades", JSON.stringify(courseList)); }
 
-function getGradeColor(grade) {
-    if (grade === 'A' || grade === 'O' || grade === 'A+') return '#00b894';
-    if (grade === 'B' || grade === 'C' || grade === 'B+') return '#fdcb6e';
-    return '#ff7675';
-}
-
 function updateGPAColor(gpa, max) {
     const resultArea = document.getElementById('result-area');
     const gpaText = document.getElementById('gpaScore');
@@ -398,21 +523,21 @@ function filterTable() {
     renderTable(filterValue === 'all' ? courseList : courseList.filter(c => c.semester === filterValue)); 
 }
 
-// --- 9. PROFILE MODULE ---
+// --- 11. PROFILE MODULE ---
 const nameInput = document.getElementById('studentName');
 const schoolInput = document.getElementById('studentSchool');
 const durationInput = document.getElementById('programDuration'); 
 const imgInput = document.getElementById('imageInput');
 const profileImg = document.getElementById('profile-img');
-const gradingInput = document.getElementById('gradingStandard'); // Save this preference
+const gradingInput = document.getElementById('gradingStandard'); 
 
 function loadProfile() {
     const savedProfile = JSON.parse(localStorage.getItem("studentProfile"));
     if (savedProfile) {
         if(savedProfile.name) nameInput.value = savedProfile.name;
         if(savedProfile.school) schoolInput.value = savedProfile.school;
-        if(savedProfile.duration) { durationInput.value = savedProfile.duration; updateSemesterOptions(); }
-        if(savedProfile.system) { gradingInput.value = savedProfile.system; } // Load Grading Pref
+        if(savedProfile.duration) durationInput.value = savedProfile.duration; 
+        if(savedProfile.system) gradingInput.value = savedProfile.system; 
         if(savedProfile.image) profileImg.src = savedProfile.image;
     }
 }
@@ -422,14 +547,14 @@ function saveProfile() {
         name: nameInput.value,
         school: schoolInput.value,
         duration: durationInput.value,
-        system: gradingInput.value, // Save Grading Pref
+        system: gradingInput.value,
         image: profileImg.src
     }));
 }
 
 nameInput.addEventListener('input', saveProfile);
 schoolInput.addEventListener('input', saveProfile);
-gradingInput.addEventListener('change', () => { saveProfile(); recalculateAll(); }); // Save & Recalc
+gradingInput.addEventListener('change', () => { saveProfile(); recalculateAll(); }); 
 durationInput.addEventListener('change', () => { saveProfile(); updateSemesterOptions(); });
 profileImg.addEventListener('click', () => imgInput.click());
 imgInput.addEventListener('change', function() {
@@ -443,4 +568,71 @@ imgInput.addEventListener('change', function() {
 
 function triggerConfetti() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+}
+
+// --- NEW HELPER: Convert Letter Grade to Representative Score ---
+function getScoreFromGrade(gradeInput, systemType) {
+    const grade = gradeInput.toUpperCase().trim();
+    
+    // 1. Nigeria Standard (5.0)
+    if (systemType === '5.0_ng') {
+        if (grade === 'A') return 70;
+        if (grade === 'B') return 60;
+        if (grade === 'C') return 50;
+        if (grade === 'D') return 45;
+        if (grade === 'E') return 40;
+        if (grade === 'F') return 0;
+    }
+    // 2. Special/PG (7.0)
+    else if (systemType === '7.0_special') {
+        if (grade === 'A') return 70;
+        if (grade === 'A-') return 65;
+        if (grade === 'B+') return 60;
+        if (grade === 'B') return 55;
+        if (grade === 'B-') return 50;
+        if (grade === 'C+') return 45;
+        if (grade === 'C') return 40;
+        if (grade === 'F') return 0;
+    }
+    // 3. Polytechnic (4.0)
+    else if (systemType === '4.0_poly') {
+        if (grade === 'A') return 75;
+        if (grade === 'AB') return 70;
+        if (grade === 'B') return 65;
+        if (grade === 'BC') return 60;
+        if (grade === 'C') return 55;
+        if (grade === 'CD') return 50;
+        if (grade === 'D') return 45;
+        if (grade === 'E') return 40;
+        if (grade === 'F') return 0;
+    }
+    // Add this else if block
+else if (systemType === '4.0_uk') {
+    if (grade === '1ST') return 75;
+    if (grade === '2:1') return 65;
+    if (grade === '2:2') return 55;
+    if (grade === '3RD') return 45;
+    if (grade === 'FAIL') return 0;
+}
+    // 4. USA (4.0)
+    else if (systemType === '4.0_us') {
+        if (grade === 'A') return 90; // Standard midpoint or min
+        if (grade === 'B') return 80;
+        if (grade === 'C') return 70;
+        if (grade === 'D') return 60;
+        if (grade === 'F') return 0;
+    }
+    // 5. India (10.0)
+    else if (systemType === '10.0') {
+        if (grade === 'O') return 80;
+        if (grade === 'A+') return 70;
+        if (grade === 'A') return 60;
+        if (grade === 'B+') return 55;
+        if (grade === 'B') return 50;
+        if (grade === 'C') return 45;
+        if (grade === 'P') return 40;
+        if (grade === 'F') return 0;
+    }
+    
+    return -1; // Return -1 if invalid grade found
 }

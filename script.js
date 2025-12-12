@@ -51,7 +51,7 @@ function updateSemesterOptions() {
     
     semSelect.innerHTML = '';
     const currentFilter = filterSelect.value;
-    filterSelect.innerHTML = '<option value="all">Show All Semesters</option>';
+    filterSelect.innerHTML = '<option value="all">Show All Terms</option>';
 
     for(let year = 1; year <= Math.ceil(duration); year++) {
         for(let term = 1; term <= termsPerYear; term++) {

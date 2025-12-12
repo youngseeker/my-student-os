@@ -154,8 +154,8 @@
         </p>
         
         <div class="target-inputs">
-            <input type="number" id="targetGPA" placeholder="Goal CGPA (e.g. 4.5)">
-            <input type="number" id="nextUnits" placeholder="Units Next Sem (e.g. 24)">
+            <input type="number" id="targetGPA" min="0" step="1" placeholder="Goal CGPA (e.g. 4.5)">
+            <input type="number" id="nextUnits" min="0" step="1" placeholder="Units Next Sem (e.g. 24)">
             <button onclick="calculateTarget()" class="target-btn">Check Required GPA</button>
         </div>
         <p id="targetResult"></p>

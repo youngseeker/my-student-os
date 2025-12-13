@@ -390,3 +390,35 @@ th {
     font-weight: 800;
     margin-left: 5px;
 }
+
+/* --- DEMO VIDEO BUTTON (The "Glass Pill") --- */
+.demo-btn {
+    /* 1. Glass Background (Matches your theme) */
+    background: rgba(255, 255, 255, 0.1) !important; 
+    backdrop-filter: blur(5px);
+    
+    /* 2. Brand Border (Links it to your Identity) */
+    border: 1px solid var(--primary-color); 
+    color: var(--text-color) !important;
+    
+    /* 3. Shape & Size */
+    border-radius: 50px; /* Pill Shape */
+    padding: 8px 20px;   /* Slim and sleek */
+    font-size: 0.9rem;
+    font-weight: 500;
+    
+    /* 4. Layout */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.demo-btn:hover {
+    /* 5. Hover Effect: Lights up with your Purple */
+    background: var(--primary-color) !important; 
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.6); /* Purple Glow */
+    transform: translateY(-2px);
+    border-color: transparent;
+}
